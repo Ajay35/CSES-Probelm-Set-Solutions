@@ -1,33 +1,6 @@
-/**
-*	  Name: Ajay
-*	  Institute: IIITH 
-*/
+#include <bits/stdc++.h>
+#define f(i,a,b) for (int i = a; i <= b; i++)
 
-#include <iostream>
-#include <cstdio>
-#include <algorithm>
-#include <deque>
-#include <vector>
-#include <cstdlib>
-#include <iomanip>
-#include <cmath>
-#include <queue>
-#include <map>
-#include <set>
-#include <ctime>
-#include <string.h>
-#define ll long long
-#define inf 0x7fffffff
-#define mod 1000000007
-#define pb push_back
-#define ppi pair<int,int>
-#define vi vector<int>
-#define vvi vector<vector<int>>
-#define vii vector<ppi>
-#define vll vector<ll>
-#define mp make_pair
-#define fi first
-#define se second
 using namespace std;
 
 void fastio()
@@ -44,111 +17,92 @@ void input()
   #endif
 }
 
-struct node
+
+const int RIGHT = 2e5+5;
+const int SIZE = 4*RIGHT;
+int N, Q, K[SIZE], D[SIZE], LK[SIZE], LD[SIZE], S[SIZE];
+
+
+void build()
 {
-	int sum;
-	int lci1,rci1;
-	int lci2,rci2;
-};
-
-
-const int N=1e5+5;
-node tree[4*N];
-int a[N],lazy[2*N];
-
-void build(int n,int s,int e)
-{
-	if(s==e)
-	{
-		tree[n].sum=a[s];
-		tree[n].lci1=s;
-		tree[n].rci1=s;
-		tree[n].lci2=s;
-		tree[n].rci2=s;
-		return;
-	}
-	build(2*n,s,(s+e)/2);
-	build(2*n+1,(s+e)/2+1,e);
-	tree[n].sum=tree[2*n].sum+tree[2*n+1].sum;
-	tree[n].lci1=tree[2*n].lci1;
-	tree[n].rci1=tree[2*n].rci1;
-	tree[n].lci2=tree[2*n+1].lci2;
-	tree[n].rci2=tree[2*n+1].rci2;
+  
 }
 
-void update(int n,int s,int e,int l,int r)
+int query(int l, int r, int n = 1, int a = 1, int b = RIGHT)
 {
-	if(lazy[n]!= 0)
-    { 
-        tree[n].sum+=lazy[n];    
-        if(s!=e)
-        {
-        	int left_sum=(tree[n].rci1-tree[n].lci1+1);
-        	int right_sum=(tree[n].rci2-tree[n].lci2+1);
-            lazy[n*2]+=(left_sum*(left_sum+1))/2;
-            lazy[n*2+1]+=(right_sum*(right_sum+1))/2;
-        }
-        lazy[n]=0;                               
-    }
-	if(e<l or r<s)
-		return;
-	if(s>=l and e<=r)
+    if(a > r || b < l) return 0;
+    if(a >= l && b <= r) return S[n];
+
+    if(LK[n] != 0 || LD[n] != 0)
     {
-    	int x=(e-s+1);
-        tree[n].sum+=(x*(x+1))/2;
-        if(s!=e)
-        {
-        	int left_sum=(tree[n].rci1-tree[n].lci1+1);
-        	int right_sum=(tree[n].rci2-tree[n].lci2+1);
-            lazy[n*2]+=(left_sum*(left_sum+1))/2;
-            lazy[n*2+1]+=(right_sum*(right_sum+1))/2;
-        }
+        int sz = (b-a+1) / 2;
+        K[2*n] += LK[n], K[2*n+1] += LK[n] + LD[n]*sz;
+        D[2*n] += LD[n], D[2*n+1] += LD[n];
+        S[2*n] += LK[n]*sz + LD[n]*sz*(sz-1) / 2;
+        S[2*n+1] += (LK[n] + LD[n]*sz)*sz + LD[n]*sz*(sz-1) / 2;
+        LK[2*n] += LK[n], LK[2*n+1] += LK[n] + LD[n]*sz;
+        LD[2*n] += LD[n], LD[2*n+1] += LD[n];
+        LK[n] = LD[n] = 0;
+    }
+
+    int mid = (a+b) / 2;
+    return query(l,r,2*n,a,mid) + query(l,r,2*n+1,mid+1,b);
+}
+
+void update(int l, int r, int k=1, int d=1, int n = 1, int a = 1, int b = RIGHT)
+{
+    if(a >= l && b <= r)
+    {
+        K[n] += k, D[n] += d;
+        LK[n] += k, LD[n] += d;
+        int sz = (b-a+1);
+        S[n] += k*sz + d*sz*(sz-1) / 2;
         return;
     }
-}
 
-ll queryRange(int n,int s,int e,int l,int r)
-{
-	if(s>e or s>r or e<l)
-        return 0;
-    if(lazy[n]!=0)
+    if(LK[n] != 0 || LD[n] != 0)
     {
-        tree[n].sum+=lazy[n];
-        if(s!=e)
-        {
-            int left_sum=(tree[n].rci1-tree[n].lci1+1);
-        	int right_sum=(tree[n].rci2-tree[n].lci2+1);
-            lazy[n*2]+=(left_sum*(left_sum+1))/2;
-            lazy[n*2+1]+=(right_sum*(right_sum+1))/2;
-        }
-        lazy[n]=0;
+        int sz = (b-a+1) / 2;
+        K[2*n] += LK[n], K[2*n+1] += LK[n] + LD[n]*sz;
+        D[2*n] += LD[n], D[2*n+1] += LD[n];
+        S[2*n] += LK[n]*sz + LD[n]*sz*(sz-1) / 2;
+        S[2*n+1] += (LK[n] + LD[n]*sz)*sz + LD[n]*sz*(sz-1) / 2;
+        LK[2*n] += LK[n], LK[2*n+1] += LK[n] + LD[n]*sz;
+        LD[2*n] += LD[n], LD[2*n+1] += LD[n];
+        LK[n] = LD[n] = 0;
     }
-    if(s>=l and e<=r)             
-        return tree[n].sum;
-    int mid=(s+e)/2;
-    ll p1=queryRange(n*2,s,mid,l,r);
-    ll p2=queryRange(n*2+1,mid+1,e,l,r);
-    return (p1+p2);
-}
 
+    int mid = (a+b) / 2;
+    if(l <= mid) update(l,min(mid,r),k,d,2*n,a,mid);
+    if(r > mid) update(max(mid+1,l),r,k + d*max(mid-l+1,0),d,2*n+1,mid+1,b);
+
+    S[n] = S[2*n] + S[2*n+1];
+}
 
 int main()
-{      
-  fastio();
-  //input();
-  int n,m,i,j,t;
-  cin>>n>>m;
-  for(i=0;i<n;i++)
-  	cin>>a[i];
-  build(1,0,n-1);
-  while(m--)
-  {
-  	int x,y,z;
-  	cin>>x>>y>>z;
-  	if(x==2)
-  		cout<<queryRange(1,0,n-1,y-1,z-1)<<"\n";
-  	else
-  		update(1,0,n-1,y-1,z-1);
-  }
-  return 0;
+{
+    fastio();
+    input();
+    scanf("%d %d", &N, &Q);
+    for(int i=1;i<=N;i++)
+    {
+
+    }
+    while(Q--)
+    {
+        int t;
+        scanf("%d", &t);
+        if(t == 1)
+        {
+            int l,r;
+            cin>>l>>r;
+            update(l,r);
+        }
+        else
+        {
+            int l,r;
+            cin>>l>>r;
+            cout<<query(l,r)<<"\n";
+        }
+    }
 }
